@@ -17,8 +17,7 @@ class Keys {
   }
   
   int getVel(int pitch){
-    keysWithPedalAndDecay[pitch] = reduceVel(keysWithPedalAndDecay[pitch]);
-    return keysWithPedalAndDecay[pitch];
+    return keysWithPedalAndDecay[pitch] = reduceVel(keysWithPedalAndDecay[pitch]);
   }
   
   void setVel(int pitch, int velocity) {
@@ -28,14 +27,14 @@ class Keys {
     LAST_PLAYED_KEY = pitch;
   }
   
-  int pedal(int currentVelocity, int newVelocity) {
-    return PEDAL_STATE && newVelocity == 0 ? currentVelocity : newVelocity; 
-  }
-  
   void setPedal(boolean state) {
     if (state == false && PEDAL_STATE == true) silenceKeys();
-    println("the pedal state is" + state);
     PEDAL_STATE = state;
+  }
+  
+  private int pedal(int currentVelocity, int newVelocity) {
+    println("the pedalstate is: "+PEDAL_STATE+" the newVelocioty is: "+newVelocity);
+    return PEDAL_STATE && newVelocity == 0 ? currentVelocity : newVelocity; 
   }
   
   private int reduceVel(int vel){
@@ -58,7 +57,7 @@ class Keys {
     
     if (keysWithPedal[currentNote] != 0 && (keysWithPedal[BASS_NOTE] == 0 || currentNote < BASS_NOTE)) {
         returnBassNote = currentNote;
-        println("the new bass note is: " + returnBassNote);
+      //println("the new bass note is: " + returnBassNote);
     }
     return returnBassNote;
   }

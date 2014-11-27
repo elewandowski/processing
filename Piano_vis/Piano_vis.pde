@@ -4,6 +4,7 @@ import netP5.*;
 OscP5 oscP5;
 Keys keys;
 int cc [] = new int[9];
+int STROKE_WEIGHT = 3;  
 
 void setup() {
   size(512, 512);
@@ -14,7 +15,6 @@ void setup() {
   oscP5.plug(this, "parseOSCKeyData", "/keys"); //connect OSC messages with the addressPattern "/key_pitch" to the keyPitch() method in our Processing sketch
   oscP5.plug(this, "cc", "/cc");
   oscP5.plug(this, "pedal", "/pedal");
-  //noStroke();
 }
 
 void draw() {
@@ -25,35 +25,38 @@ void draw() {
   
   for (int pitch=0; pitch<keys.size; pitch++) {
     int velocity = keys.getVel(pitch);
-    //if (pitch % 12 == 0) println ("the vel is " + velocity);
     color col = colorScheme(pitch, velocity, keys.BASS_NOTE);
     stroke(col);
-    strokeWeight(velocity * 3);
-    //float velTriggeredAngle = (keysP[i] / 127) * 50;
+    strokeWeight(velocity * STROKE_WEIGHT);
+    //float velTriggeredAngle = (velocity / 127) * 50;
     line(0, pitch * verticalSpacing, width, pitch * verticalSpacing);
   }
 }
 
 color colorScheme(int pit, int vel, int bassNote){
-  color returnColor;
+  //color returnColor;
+  //int red, green, blue = 0;
   
-  float bassCol = bassNote % 12 * 21.25; // which key is the bass note on playing?
-  returnColor = color(bassCol, vel, vel);
+  float hue = map(pit, 0, 120, 0, 765);
+  float brightness = map(vel, 0, 127, 0, 255);
+  float red = hue % 255;
+  float grn = hue - 255 % 510;
+  float blu = hue - 510 % 765;
+  //float bassCol = bassNote % 12 * 21.25; // which key is the bass note on playing?
+  //returnColor = color(red, grn, blu);
   
-  return returnColor;
+  return color(red, grn, blu);
 }
 
 void parseOSCKeyData(int pitch, int velocity) {
   keys.setVel(pitch, velocity);
-  //println("lastPlayedKey = " + lastPlayedKey);
-  //println("i'm in in your kepitch method " + i + " " + v); 
 }
 
 void cc(int i, int cc_val) {
+  println("new cc " + i + " value: " + cc_val);
   cc[i] = cc_val;
 }
 
 void pedal(int state) {
-  //println("the pedal state is " + state);
   keys.setPedal(boolean(state));
 }
