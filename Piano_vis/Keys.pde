@@ -33,7 +33,6 @@ class Keys {
   }
   
   private int pedal(int currentVelocity, int newVelocity) {
-    println("the pedalstate is: "+PEDAL_STATE+" the newVelocioty is: "+newVelocity);
     return PEDAL_STATE && newVelocity == 0 ? currentVelocity : newVelocity; 
   }
   
