@@ -1,6 +1,6 @@
 class Keys {
   
-  int size = 120;
+  int size = 121;
   int keys [] = new int[size];
   int keysWithPedal [] = new int[size];
   int keysWithPedalAndDecay [] = new int[size];
