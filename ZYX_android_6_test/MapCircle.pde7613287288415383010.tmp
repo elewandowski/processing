@@ -1,0 +1,124 @@
+class MapCircle{
+  
+  int totalLines = 16;
+  CircleData[][] positionArray = new CircleData[totalLines][400];
+  int[] positionArrayCountY = new int[totalLines];
+  int x, y, r, positionArrayCountX, positionArrayCountYY, normX, normY;
+  float theta, prevTheta, hypotenuse, adjacent;
+  float innerR;
+  boolean firstTap;
+  int firstTapTime;
+  
+  MapCircle(int x, int y, int r){
+    
+    this.x = x;
+    this.y = y;
+    this.r = r;
+    innerR = r*0.33;
+    positionArrayCountX = 0;
+//    positionArrayCountY = 0;
+    for(int i=0; i<positionArray.length;i++) positionArray[i][0] = new CircleData(0,0,0);
+    
+//    for(int i=0;i<positionArray.length;i++) positionArray[i] = new CircleData(0,0,0);
+  }
+  
+  //call inside mouseMoved
+  void update(){
+    
+    normX = mouseX-x;
+    normY = mouseY-y;
+    hypotenuse = dist(0, 0, normX, normY);
+    adjacent = dist(normX, 0, normX, normY);
+    theta = acos(adjacent / hypotenuse);
+    
+    if (normX>0 && normY<0) theta = PI-theta; //don't know why but this segment is backwards
+    else if(normX<0 && normY<0) theta += PI;
+    else if(normX<0 && normY>0) theta = TWO_PI-theta; //this segment too, funny trigonometry...
+    
+    //if we are in the drawing part of the arc
+    if(hypotenuse < r && hypotenuse > innerR && theta > PI*0.125  && theta < TWO_PI*0.9375){
+      
+//      println(theta);
+      if(theta>prevTheta && constrain(theta%0.017,0.0025,0.017) == 0.0025){
+        positionArray[positionArrayCountX][positionArrayCountY[positionArrayCountX]] = new CircleData(map(hypotenuse, innerR, r, 0f, 1f), normX, normY);
+        positionArrayCountY[positionArrayCountX]++;
+        
+        prevTheta = theta;
+      }
+    }
+  }
+  
+  void display(){
+    
+    pushMatrix();
+    translate(x,y);
+    stroke(0);
+    strokeWeight(1.5);
+    fill(235,235,235,127);
+    
+    arc(0,0,r*2,r*2,PI*0.625,TWO_PI*1.1875);
+    fill(200,200,200,127);
+    arc(0,0,r*0.66,r*0.66,PI*0.625,TWO_PI*1.1875);
+    
+    line(0,0,cos(PI*0.625)*r, sin(TWO_PI*1.1875)*r);
+    line(0,0,cos(radians(67.5))*r, sin(radians(67.5))*r);
+    
+    strokeWeight(2.5);
+//    println(positionArrayCountX+"  edfd");
+    for(int i=0;i<=positionArrayCountX;i++){
+      for(int j = 0;j<positionArrayCountY[i];j++){
+        if(j == 0) point(positionArray[i][j].x,positionArray[i][j].y);
+        else line(positionArray[i][j-1].x,positionArray[i][j-1].y, positionArray[i][j].x,positionArray[i][j].y);
+      }
+    }
+    popMatrix();
+    
+  }
+  
+  //call inside mousePressed
+  boolean checkForEraseCall(){
+    
+    boolean returning = false;
+    if(dist(0, 0, mouseX-x, mouseY-y) < innerR){
+      
+      if(firstTap && millis() - firstTapTime < 250){
+        positionArrayErase();
+        println("array erased");
+        returning = true;
+      }
+      else{
+        firstTap = false;
+      }
+      
+      if(!firstTap){
+        firstTap = true;
+        firstTapTime = millis();
+      }
+    }
+    return returning;
+  }
+  
+  void positionArrayErase(){
+
+    //we don't even need to erase the data, we can just limit how far to read to. 
+    prevTheta = 0;
+    positionArrayCountY[positionArrayCountX] = 0;
+  }
+  
+  void setPositionArrayCountX(int positionArrayCountX){
+    this.positionArrayCountX = positionArrayCountX;
+    prevTheta = 0;
+  }
+}
+
+class CircleData{
+  
+  float value;
+  int x, y;
+  
+  CircleData(float value, int x, int y){
+    this.value = value;
+    this.x = x;
+    this.y = y;
+  }
+}

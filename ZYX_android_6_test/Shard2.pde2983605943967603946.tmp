@@ -1,0 +1,46 @@
+class Shard2{
+  
+  float x, y, z, w, h;  
+  float xR,yR,zR;
+  PVector[] vectors;
+  
+  Shard2(float x, float y, float w, float h){
+    this.w = w;
+    this.h = h;
+    this.x = x;
+    this.y = y;
+    vectors = new PVector[16];
+    for(int i=0; i<vectors.length;i++){
+      vectors[i] = new PVector();
+      vectors[i].set(random(-w/2, w/2),random(-h/2, h/2),random(-w/2, w/2));
+    }      
+    z = random(-1000);
+  }
+  
+  void update(float x, float y){
+    this.x = x;
+    this.y = y;
+    xR += 0.003;
+    yR += 0.005;
+    zR += 0.002;
+  }
+  
+  void display(){
+    
+    pushMatrix();
+    translate(x,y,0);
+    rotateX(xR);
+    rotateY(yR);
+    rotateZ(zR);
+    stroke(90);
+    strokeWeight(0.5);
+    beginShape();
+    for(int i=0; i<vectors.length;i++) {
+      vertex(vectors[i].x,vectors[i].y,vectors[i].z);
+    }
+    endShape();
+    popMatrix();
+  }
+  
+
+}

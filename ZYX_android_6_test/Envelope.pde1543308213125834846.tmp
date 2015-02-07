@@ -1,0 +1,74 @@
+class Envelope{
+  
+  float[] pointsArray = new float[4];
+  int[] totalSampleCounts; 
+  float signal, env;
+  int pointCount, sampleCount, totalPointCount;
+  boolean trigger;  
+  
+  //an attack decay envelope
+  Envelope(float _time0, float _point0, float _time1, float _point1){
+    
+    trigger = false;
+    pointCount = 0;
+    totalPointCount = 0;
+    sampleCount = 0;
+    
+    pointsArray[0] = _time0;
+    pointsArray[1] = _point0;
+    pointsArray[2] = _time1;
+    pointsArray[3] = _point1;
+    
+    totalSampleCounts = new int[3];
+    totalSampleCounts[0] = round(pointsArray[0]*44.1); //total amount of samples in the ATTACK
+    totalSampleCounts[1] = round(pointsArray[2]*44.1); //total amount of samples in the DECAY
+    totalSampleCounts[2] = totalSampleCounts[0] + totalSampleCounts[1]; // total amount of samples
+  }
+  
+  void trigger(){
+//    reset();
+    trigger = true;
+  }
+  
+  float env(float signal){
+    
+    if(trigger){
+      
+      //multiply the max amplitude of our first segment, by the normalized value of where we are in the first segment
+      
+      if(pointCount == 0)       env = pointsArray[pointCount+1] * ((float)sampleCount/totalSampleCounts[totalPointCount]);
+      else if (pointCount == 2) env = pointsArray[pointCount+1] * (1.0-((float)sampleCount/totalSampleCounts[totalPointCount]));
+      
+      sampleCount++;
+      
+      //move to the next segment when finished
+      if(sampleCount >= totalSampleCounts[totalPointCount]){
+        totalPointCount++;
+        pointCount += 2;
+        sampleCount = 0; // reset sampleCount to 0, so we can normalize each segment easily
+      }
+      
+      if(totalPointCount == 2){ //reset the envelope if you reach the end
+        reset();
+      }
+      signal *=  env;
+    } 
+    else signal = 0;
+    
+    return signal;
+  }
+  
+  void reset(){
+    trigger = false;
+    pointCount = 0;
+    totalPointCount = 0;
+    sampleCount = 0;
+  }
+  
+  void setEnvelope(float _time0, float _point0, float _time1, float _point1){
+    pointsArray[0] = _time0;
+    pointsArray[1] = _point0;
+    pointsArray[2] = _time1;
+    pointsArray[3] = _point1;
+  }
+}

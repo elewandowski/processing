@@ -1,0 +1,250 @@
+class Boid {
+
+  int thisBoid, wtIndex, colR, colG, colB, colHold;
+  int thisMX, thisMY, prevMX, prevMY;
+  float x, y, xA, yA, bigness, col, wtDelta, pan, out, centerDist, distance, rotX, rotY, rotZ, scaler, zTransform;
+  boolean isOn, collision;
+  int colHoldFrames = 25;
+  float [] stereoOut;
+  float [] waveTable;
+  
+  Lines bLine;
+  Shard2 s;
+  Envelope e;  
+
+  Boid (float x, float y, float bigness, int thisBoid, float scaler) {
+
+    this.thisBoid = thisBoid;
+    this.x = x;
+    this.y = y;
+    this.bigness = bigness;
+//    bLine = new Lines(10,10,10,0,0,0);
+    s = new Shard2(x, y, (int)this.bigness, (int)this.bigness);
+    xA = random(-1, 2);
+    yA = random(-1, 2);
+    wtDelta = 0;
+    wtIndex = 0;
+    colG = 200;
+    colB = 200;
+    colHold = colHoldFrames;
+    collision = false;
+    this.scaler = scaler;
+    out = 0;
+    rotX = TWO_PI*random(1);
+    rotY = TWO_PI*random(1);
+    rotZ = TWO_PI*random(1);
+    stereoOut = new float [2];
+    waveTable = new float [44100];
+    this.populateWaveTable();
+    e = new Envelope(random(100,200),1,random(1000,5000),1);
+  }
+
+  void wob() {
+    
+    thisMX = mouseX;
+    thisMY = mouseY;
+    
+    //if the mouse has moved since the last frame and is pressed, get the distance between boid and mouse
+    if(mousePressed && thisMX != prevMX && thisMY != prevMY) centerDist = dist(thisMX,thisMY,x,y);
+    else centerDist = 0;
+    
+    if (centerDist < 200 && centerDist != 0) {
+      friction += (float)centerDist/250;
+      
+      if(prevMX>thisMX) xA -= friction;
+      else xA += friction;
+      if(prevMY>thisMY) yA -= friction;
+      else yA += friction;
+      col = dist(0, 0, x, y);
+    }
+    else{
+      xA *= 0.99;
+      yA *= 0.99;
+    }
+    
+    prevMX = thisMX;
+    prevMY = thisMY;
+    
+    
+    for (int i=0; i <boidArray.length; i++) {
+      if (i!=thisBoid) {
+        
+        distance = dist(boidArray[i].x, boidArray[i].y, x, y);
+        
+        if (collision == false && distance < bigness) {
+          collision = true;
+          e.trigger();
+//          combineWaveTables(i);
+          //if a collision is made, transfer 25% velocity and reverse direction
+          xA += boidArray[i].xA*0.25;
+          yA += boidArray[i].yA*0.25;
+          xA *= -1;
+          yA *= -1;
+          //          combineWaveTables(i);
+        }
+      }
+    }
+
+    //hold collision colouring for 60 frames
+    if (collision == true) {
+      colHold --;
+      colG = 30;
+      colB = 20;  
+
+      if (colHold <= 0) {
+        colHold = colHoldFrames;
+        collision = false;
+      }
+    }
+    else {
+      colG = 200;
+      colB = 200;
+    }
+
+    x += xA;
+    y += yA;
+
+    if (x >= boidControlSpace[2]) x = boidControlSpace[0];
+    else if (x <= boidControlSpace[0]) x = boidControlSpace[2];
+    if (y >= boidControlSpace[3]) y = boidControlSpace[1];
+    else if (y <= boidControlSpace[1]) y = boidControlSpace[3];
+
+    s.update(x,y);
+    newFreq();
+  }
+
+  void display() {
+    
+    if(thisBoid < boidArray.length/2) fill(197, colG, colB, col);
+    if(thisBoid > boidArray.length/2) fill(colG, 197, colB, col);
+    pushMatrix();
+    if(masterCircle.positionArray[boidMcCount].value * 2000 > zTransform){ 
+      zTransform++;
+    } else if(masterCircle.positionArray[boidMcCount].value * 2000 < zTransform){
+      zTransform--;
+    }
+
+    translate(0, 0, -zTransform);
+//    translate(x, y);
+
+//    rotateX(rotY);
+//    rotateY(rotY);
+//    rotateZ(rotZ);
+    
+//    ellipse(this.x,this.y,20,20);
+    s.display();
+    
+//    bLine.update((int)random(5,5),(int)random(5,45),(int)random(5,100));
+//    bLine.display();
+//    box(bigness);
+    popMatrix();
+  }
+
+  void newFreq() {
+    wtDelta =  20 + pow( (float)y/height, sqrt(height*0.01) ) * 4000 ;
+//    wtDelta = (1-(y/height))*(1200+scaler);
+  }
+
+  float[] wtOutStereo() {
+    wtIndex %= this.waveTable.length;
+
+//    pan = ((float)x/width);
+    pan = 0.5;
+
+    stereoOut[0] =   e.env((float)this.waveTable[wtIndex]) * pan;
+    stereoOut[1] =   e.env(stereoOut[0]) * (1-pan);
+    wtIndex += round(wtDelta);
+
+    return stereoOut;
+  }
+
+  float wtOut() {
+    wtIndex %= waveTable.length;
+    if (wtIndex < 0) wtIndex = 0;
+    out = (float)waveTable[wtIndex];
+    wtIndex += round(wtDelta);
+    return out;
+  }
+
+  void populateWaveTable() {
+
+    int caseNum = 0;
+//    int caseNum = 0;
+
+    switch(caseNum) {
+
+      //sinewave
+    case 0:
+    if(!true){
+      float angle = 0;
+      float piXsinAr = TWO_PI/this.waveTable.length;
+      for (int i=0;i<this.waveTable.length;i++) {
+        this.waveTable[i] = sin(angle);
+        angle = piXsinAr*i*4;
+      }
+    } else{
+      //multiple sinewaves in one wavetable
+      float repeats = random(20);
+      for(int j=0;j<repeats;j++){
+        float angle = 0;
+        float piXsinAr = TWO_PI/(this.waveTable.length/random(16));
+        for (int i=0;i<this.waveTable.length;i++) {
+          this.waveTable[i] += sin(angle)/repeats;
+          angle = piXsinAr*i*1.25;
+        } 
+     }      
+    }
+      break;
+      
+      //sawtooth wave
+    case 1:
+      for (int i=0;i<this.waveTable.length;i++) {
+        this.waveTable[i] = (((float)i/waveTable.length)-0.5)*2;
+      }
+      break;
+
+      //square wave
+    case 2:
+      for (int i=0;i<this.waveTable.length;i++) {
+        if ((float)i/44100<0.5) this.waveTable[i] = -1;
+        else this.waveTable[i] = 1;
+      }
+      break;
+      
+    case 3:
+      for (int i=0;i<this.waveTable.length;i++) {
+        this.waveTable[i] = random(-1,1);
+      }
+      break;
+
+      //triangle wave
+    case 4:
+      float triWave = 0;
+      float acceleration = waveTable.length/4; 
+      for (int i=0;i<this.waveTable.length;i++) {
+        if(triWave > 1 || triWave < -1) acceleration *= -1; 
+        waveTable[i] = triWave;
+//        println(triWave);
+        triWave += acceleration;
+      }
+      break;
+    }
+
+//    if (caseNum==0) println("boid "+thisBoid+" is a sine wave");
+//    else if (caseNum==1) println("boid "+thisBoid+" is a sawtoooth wave");
+//    else if (caseNum==2) println("boid "+thisBoid+" is a square wave");
+//    else if (caseNum==3) println("boid "+thisBoid+" is a square wave");
+  }
+
+  void combineWaveTables(int _i) {
+
+//    int waveTableAddition = (int) random(boidArray[_i].waveTable.length);
+    for (int i=(int)random(44100);i<this.waveTable.length;i++) {
+//      waveTableAddition++;
+//      waveTableAddition %= boidArray[_i].waveTable.length;
+//      this.waveTable[i] = (this.waveTable[i] + boidArray[_i].waveTable[i]) * 0.5;
+        this.waveTable[i] = delayLine[i];
+    }
+  }
+}
+

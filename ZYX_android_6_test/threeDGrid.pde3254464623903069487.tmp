@@ -1,0 +1,52 @@
+class threeDGrid{
+  
+  int w, h, xCor, yCor;
+  float noiseValX, noiseValY;
+  
+  threeDGrid(int w, int h){
+    this.w = w;
+    this.h = h;
+  }
+  
+  void update(int _x, int _y){
+    xCor -= (_x-width/2)/256;
+    yCor -= (_y-height/2)/256;
+    
+    noiseValX+=0.01;
+    noiseValY+=0.015;
+    xCor -= ((noise(noiseValX)-0.5)*2)*5;
+    yCor -= ((noise(noiseValY)-0.5)*2)*5;
+//    if(frameCount % 60 == 0) println(((noise(noiseVal)-0.5)*2)*5);
+//    xCor += random(-5,5);
+//    yCor += random(-5,5);
+    
+    if(xCor > w) xCor = w;
+    else if(xCor < 0) xCor = 0;
+    if(yCor > h) yCor = h;
+    else if (yCor < 0) yCor = 0;
+  }
+  
+  void display(){
+
+   strokeWeight(0.5);
+//   pushMatrix();
+   translate(xCor,yCor);
+   for(int i=-width*2; i<width*3+1; i+=w){
+    for(int j=-height*2; j<height*3+1; j+=h){
+      
+      //x lines
+      stroke(160);
+      line(-width*2,j,-i, width*3,j,-i);
+      
+      //y lines
+      stroke(160);
+      line(i,-height*2,-j, i,height*3,-j);
+      
+      //z lines
+      stroke(127);
+      line(i,j,width*2, i,j,-width*3);
+    }
+  }
+//  popMatrix();
+ }  
+}
