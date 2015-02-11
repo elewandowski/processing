@@ -19,14 +19,19 @@ void setup(){
   size(1024, 768);
   saveVideoFolder = generateVideoFolderName();
   prepareImage(nextImgString());
-  numOfRows = 10;
+  numOfRows = 4;
   frameRate(30);
   
   String [] cameras = Capture.list();
   
-  for(int i=0; i<cameras.length; i++) println(cameras[i] + " "+ i);
+  // for(int i=0; i<cameras.length; i++) println(cameras[i] + " "+ i);
   cam = new Capture(this, cameras[19]);
   cam.start();
+  
+  img = cam;
+  img.loadPixels();
+  
+  println(img.height +" "+ img.width);
 }
 
 void draw(){
@@ -34,27 +39,30 @@ void draw(){
   // int [] cArrayPixels = colArray2intArray(img.pixels);
    if (cam.available() == true) {
     cam.read();
+    prepareImage(cam);
   }
   
-  int [] cArrayPixels = colArray2intArray(img.pixels);
+  if (img.height > 0) {
+    int [] cArrayPixels = colArray2intArray(img.pixels);
+    
+    yTrans = -127;
+    
+  //   println("rowNum: " + rowNum 
+  //           + " img.width: " + img.width 
+  //           + " imgSize: " + imgSize);
   
-  yTrans = -127;
-  
-//  println("rowNum: " + rowNum 
-//          + " img.width: " + img.width 
-//          + " imgSize: " + imgSize);
-
-  for(int i=0; i<numOfRows; i++) {
-    int rowStart = ((rowNum + i*mouseX) * img.width) % imgSize;
-    int[] row = subset(cArrayPixels, rowStart, img.width);
-    pushMatrix();
-    translate(0, height/numOfRows*i);
-    drawSignal(row);
-    popMatrix();
-    //yTrans += 1 + ((float)mouseX/width)*8;
+    for(int i=0; i<numOfRows; i++) {
+      int rowStart = ((rowNum + i*mouseX) * img.width) % imgSize;
+      int[] row = subset(cArrayPixels, rowStart, img.width);
+      pushMatrix();
+      translate(0, height/numOfRows*i);
+      drawSignal(row);
+      popMatrix();
+      //yTrans += 1 + ((float)mouseX/width)*8;
+    }
+    rowNum = (rowNum + 1) % img.height;
+    if(savingFrame) saveFrame("video/" + saveVideoFolder + "/screen-#####.png");
   }
-  rowNum = (rowNum + 1) % img.height;
-  if(savingFrame) saveFrame("video/" + saveVideoFolder + "/screen-#####.png");
 }
 
 void drawSignal(int[] row) {
@@ -101,6 +109,13 @@ void prepareImage(String s) {
     img.loadPixels();
     imgSize = img.height * img.width;
     rowNum = 0;
+}
+
+void prepareImage(Capture c) {
+    img = c;
+    img.loadPixels();
+    imgSize = img.height * img.width;
+    //rowNum = 0;
 }
 
 String generateVideoFolderName(){
