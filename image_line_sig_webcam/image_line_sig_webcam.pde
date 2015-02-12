@@ -1,10 +1,8 @@
 import processing.video.*;
-
-Capture cam;
-
 import oscP5.*;
 import netP5.*;
 
+Capture cam;
 OscP5 oscP5;
 PImage img;
 int imgNum;
@@ -17,21 +15,12 @@ String saveVideoFolder;
 
 void setup(){
   size(1024, 768);
-  saveVideoFolder = generateVideoFolderName();
-  prepareImage(nextImgString());
-  numOfRows = 4;
+//  saveVideoFolder = generateVideoFolderName();
+//  prepareImage(nextImgString());
+  numOfRows = 10;
   frameRate(30);
-  
-  String [] cameras = Capture.list();
-  
-  // for(int i=0; i<cameras.length; i++) println(cameras[i] + " "+ i);
-  cam = new Capture(this, cameras[19]);
+  cam = new Capture(this, cameras[0]);
   cam.start();
-  
-  img = cam;
-  img.loadPixels();
-  
-  println(img.height +" "+ img.width);
 }
 
 void draw(){
@@ -47,10 +36,6 @@ void draw(){
     
     yTrans = -127;
     
-  //   println("rowNum: " + rowNum 
-  //           + " img.width: " + img.width 
-  //           + " imgSize: " + imgSize);
-  
     for(int i=0; i<numOfRows; i++) {
       int rowStart = ((rowNum + i*mouseX) * img.width) % imgSize;
       int[] row = subset(cArrayPixels, rowStart, img.width);
