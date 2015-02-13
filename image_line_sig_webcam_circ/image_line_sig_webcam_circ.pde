@@ -1,9 +1,8 @@
 import processing.video.*;
-
-Capture cam;
 import oscP5.*;
 import netP5.*;
 
+Capture cam;
 OscP5 oscP5;
 NetAddress myRemoteLocation;
 PImage img;
@@ -90,7 +89,10 @@ void drawCircSignal(int[] row) {
   for (int i=0; i<row.length-1; i++) {      
     float tempR = (float) row[i] / 255;
     float tempR2 = (float) row[i+1] / 255;
-    stroke(row[i]);
+//    s = createShape();
+//    s.beginShape();
+    
+    stroke(0);
     line(cos(theta) * (tempR * radius), sin(theta) * (tempR * radius), 
           cos(theta + thetaInc) * (tempR2 * radius), sin(theta + thetaInc) * (tempR2 * radius));
     theta += thetaInc;
@@ -105,7 +107,7 @@ void drawLineSignal(int[] row, int yTrans) {
   pushMatrix();
   translate(0, yTrans);
   for (int i=0; i<row.length-1; i++) {
-    stroke(row[i]);
+    stroke(0);
     line(i * xSpacing, row[i], (i+1) * xSpacing, row[i+1] * ySpacing);
   }
   popMatrix();
